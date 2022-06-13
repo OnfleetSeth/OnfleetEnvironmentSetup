@@ -62,7 +62,7 @@ def create_tasks_batch(api_key, file, batchsize=100):
     return
 
 
-def list_tasks():
+def list_tasks(api_key):
     tasks = []
     lastid = ()
 
@@ -144,5 +144,3 @@ def delete_tasks(api_key, taskid=None):
 
     return
 
-
-create_tasks_batch(250, filepath)
