@@ -67,7 +67,7 @@ def delete_workers(api_key, workerid=None):
         confirm = input("Delete all workers? y or n. ")
 
         if confirm == "y":
-            workers = list_workers()
+            workers = list_workers(api_key)
 
             for w in workers:
                 workerid = w['id']
