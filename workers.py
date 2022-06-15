@@ -55,7 +55,7 @@ def delete_workers(api_key, workerid=None):
     if workerid:
         url = f"https://onfleet.com/api/v2/workers/{workerid}"
 
-        payload={}
+        payload = {}
         headers = {
             'Authorization': 'Basic ' + u.encode_b64(api_key)
         }
@@ -79,7 +79,7 @@ def delete_workers(api_key, workerid=None):
                     'Authorization': 'Basic ' + u.encode_b64(api_key)
                 }
 
-                response = json.loads(requests.request("DELETE", url, headers=headers, data=payload).text)
+                response = requests.request("DELETE", url, headers=headers, data=payload)
                 # print(response)
                 print("Worker " + w['id'] + " deleted.")
 
