@@ -38,7 +38,7 @@ def create_workers(api_key, file):
     return
 
 
-def list_workers():
+def list_workers(api_key):
     url = "https://onfleet.com/api/v2/workers?filter=id"
     payload = ""
     headers = {
