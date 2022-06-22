@@ -9,8 +9,8 @@ workers_filepath = "/Users/sethlipman/Desktop/workers.json"
 # Clear Out Environment
 # None = delete all
 # tasks.delete_tasks(api_key=api_key, taskid=None)
-workers.delete_workers(api_key=api_key, workerid=None)
+# workers.delete_workers(api_key=api_key, workerid=None)
 
 # Setup Environment
-# tasks.create_tasks_batch(api_key=api_key, file=tasks_filepath, batchsize=100)
+tasks.create_tasks_batch(api_key=api_key, file=tasks_filepath, batchsize=100)
 # workers.create_workers(api_key=api_key, file=workers_filepath)

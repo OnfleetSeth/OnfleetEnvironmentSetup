@@ -119,7 +119,7 @@ def delete_tasks(api_key, taskid=None):
         confirm = input("Delete all tasks? y or n. ")
 
         if confirm == "y":
-            tasks = list_tasks()
+            tasks = list_tasks(api_key)
 
             for t in tasks:
                 try:
