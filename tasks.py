@@ -4,7 +4,6 @@ import datetime
 import time
 import concurrent.futures
 from utilities import rate_limited, read_file, encode_b64
-# import pprint as p
 
 
 @rate_limited(5)
@@ -25,7 +24,7 @@ def create_single_task(task, api_key):
         print(datetime.datetime.now(), response.text)
 
 
-def create_single_task_async(file):
+def create_single_task_async(api_key, file):
     data_tuple = read_file(file)
     tasks = data_tuple[1]
 
@@ -35,7 +34,7 @@ def create_single_task_async(file):
         start = datetime.datetime.now()
 
         for task in tasks:
-            futures.append(executor.submit(create_single_task, task=task))
+            futures.append(executor.submit(create_single_task, api_key, task=task))
         for future in concurrent.futures.as_completed(futures):
             print(count, future.result())
 
@@ -118,7 +117,6 @@ def list_tasks(api_key):
         elif last_id == "":
             i = 0
 
-    # p.pprint(tasks)
     return tasks
 
 
