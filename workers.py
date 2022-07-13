@@ -1,11 +1,10 @@
-import utilities as u
 import requests
 import json
+from utilities import read_file, encode_b64
 
 
 def create_workers(api_key, file):
-
-    data_tuple = u.read_file(file)
+    data_tuple = read_file(file)
     worker_count = data_tuple[0]
     workers = data_tuple[1]
 
@@ -13,21 +12,16 @@ def create_workers(api_key, file):
 
     for w in workers:
         try:
-
             url = "https://onfleet.com/api/v2/workers"
-
             payload = json.dumps({'name': w['name'], 'phone': w['phone'], "teams": w['teams'], "vehicle": w[
                 'vehicle'], 'capacity': w['capacity']})
-
             headers = {
-                'Authorization': 'Basic ' + u.encode_b64(api_key),
+                'Authorization': 'Basic ' + encode_b64(api_key),
                 'Content-Type': 'application/json'
             }
-
             requests.request("POST", url, headers=headers, data=payload)
 
             # print(response.text)
-
             print("Worker (" + w['name'] + ") created.")
 
         except Exception as e:
@@ -42,27 +36,30 @@ def list_workers(api_key):
     url = "https://onfleet.com/api/v2/workers?filter=id"
     payload = ""
     headers = {
-        'Authorization': 'Basic ' + u.encode_b64(api_key)
+        'Authorization': 'Basic ' + encode_b64(api_key)
     }
+    try:
+        response = requests.request("GET", url, headers=headers, data=payload)
+        response_json = json.loads(response.text)
+        # print(response.text)
+        return response_json
+    except Exception as e:
+        print(e)
 
-    response = json.loads(requests.request("GET", url, headers=headers, data=payload).text)
 
-    return response
-
-
-def delete_workers(api_key, workerid=None):
-
-    if workerid:
-        url = f"https://onfleet.com/api/v2/workers/{workerid}"
-
+def delete_workers(api_key, worker_id=None):
+    if worker_id:
+        url = f"https://onfleet.com/api/v2/workers/{worker_id}"
         payload = {}
         headers = {
-            'Authorization': 'Basic ' + u.encode_b64(api_key)
+            'Authorization': 'Basic ' + encode_b64(api_key)
         }
+        try:
+            requests.request("DELETE", url, headers=headers, data=payload)
+        except Exception as e:
+            print(e)
 
-        response = json.loads(requests.request("DELETE", url, headers=headers, data=payload).text)
-        # print(response)
-        print("Worker " + workerid + " deleted.")
+        print("Worker " + worker_id + " deleted.")
     else:
         confirm = input("Delete all workers? y or n. ")
 
@@ -70,17 +67,15 @@ def delete_workers(api_key, workerid=None):
             workers = list_workers(api_key)
 
             for w in workers:
-                workerid = w['id']
-
-                url = f"https://onfleet.com/api/v2/workers/{workerid}"
-
+                worker_id = w['id']
+                url = f"https://onfleet.com/api/v2/workers/{worker_id}"
                 payload = {}
                 headers = {
-                    'Authorization': 'Basic ' + u.encode_b64(api_key)
+                    'Authorization': 'Basic ' + encode_b64(api_key)
                 }
 
-                response = requests.request("DELETE", url, headers=headers, data=payload)
-                # print(response)
-                print("Worker " + w['id'] + " deleted.")
-
-
+                try:
+                    requests.request("DELETE", url, headers=headers, data=payload)
+                    print("Worker " + w['id'] + " deleted.")
+                except Exception as e:
+                    print(e)

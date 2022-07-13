@@ -2,57 +2,88 @@ import json
 import requests
 import datetime
 import time
-import pprint as p
-import utilities as u
+import concurrent.futures
+from utilities import rate_limited, read_file, encode_b64
+# import pprint as p
 
 
-def create_tasks_batch(api_key, file, batchsize=100):
+@rate_limited(5)
+def create_single_task(task, api_key):
+    url = "https://onfleet.com/api/v2/tasks"
+    payload = json.dumps(
+        task
+    )
+    headers = {
+        'Authorization': 'Basic ' + encode_b64(api_key),
+        'Content-Type': 'application/json'
+    }
+    response = requests.request("POST", url, headers=headers, data=payload)
 
-    data_tuple = u.read_file(file)
+    if response == 200:
+        pass
+    else:
+        print(datetime.datetime.now(), response.text)
+
+
+def create_single_task_async(file):
+    data_tuple = read_file(file)
+    tasks = data_tuple[1]
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        count = 0
+        futures = []
+        start = datetime.datetime.now()
+
+        for task in tasks:
+            futures.append(executor.submit(create_single_task, task=task))
+        for future in concurrent.futures.as_completed(futures):
+            print(count, future.result())
+
+    end = datetime.datetime.now()
+    print("start: " + str(start), "end: " + str(end), "duration: " + str(end-start))
+
+
+def create_tasks_batch(api_key, file, batch_size=100):
+    data_tuple = read_file(file)
     task_count = data_tuple[0]
     data = data_tuple[1]
+    number_of_batches = (int(task_count / batch_size) + (task_count % batch_size > 0))
 
-    number_of_batches = (int(task_count / batchsize) + (task_count % batchsize > 0))
-
-    print("Batch size: " + str(batchsize))
+    print("Batch size: " + str(batch_size))
     print("Number of batches: " + str(number_of_batches))
 
-    x = 0
-    while x < number_of_batches:
-        print(datetime.datetime.now(), "Trying: Create Batch " + str(x + 1) + ".")
-        start = (x * batchsize)
-        end = (start + batchsize) - 1
+    batch_counter = 0
+    if batch_counter < number_of_batches:
+        print(datetime.datetime.now(), "Trying: Create Batch " + str(batch_counter + 1) + ".")
+        start = (batch_counter * batch_size)
+        end = (start + batch_size) - 1
 
         task_batch = []
-
         i = start
         while i <= end:
             try:
                 task_batch.append(data[i])
-            except IndexError:
+            except IndexError as e:
+                print(e)
                 break
-
             i += 1
 
         url = "https://onfleet.com/api/v2/tasks/batch"
-
         payload = json.dumps({"tasks": task_batch})
-
         headers = {
-            'Authorization': 'Basic ' + u.encode_b64(api_key)
+            'Authorization': 'Basic ' + encode_b64(api_key)
         }
-
         response = requests.request("POST", url, headers=headers, data=payload)
 
         if response.ok:
             # print(response)
-            print("Batch " + str(x+1) + " created.")
-            x += 1
+            print("Batch " + str(batch_counter+1) + " created.")
+            batch_counter += 1
         elif response.status_code == 404:
             # print(response)
             time.sleep(10)
-            print("Batch " + str(x + 1) + " created.")
-            x += 1
+            print("Batch " + str(batch_counter + 1) + " created.")
+            batch_counter += 1
         elif response.status_code == 412:
             # print(response)
             print("Waiting...")
@@ -64,78 +95,61 @@ def create_tasks_batch(api_key, file, batchsize=100):
 
 def list_tasks(api_key):
     tasks = []
-    lastid = ()
-
+    last_id = ()
     payload = {}
     headers = {
-        'Authorization': 'Basic ' + u.encode_b64(api_key)
+        'Authorization': 'Basic ' + encode_b64(api_key)
     }
 
     i = 1
     while i > 0:
         if i == 1:
             url = f"https://onfleet.com/api/v2/tasks/all?from=1455072025000"
-
             response = json.loads(requests.request("GET", url, headers=headers, data=payload).text)
-
-            lastid = response.get('lastId', '')
-
+            last_id = response.get('lastId', '')
             tasks = tasks + response['tasks']
-
             i += 1
-
-        elif lastid != "":
-
-            url = f"https://onfleet.com/api/v2/tasks/all?from=1455072025000&lastId={lastid}"
+        elif last_id != "":
+            url = f"https://onfleet.com/api/v2/tasks/all?from=1455072025000&lastId={last_id}"
             response = json.loads(requests.request("GET", url, headers=headers, data=payload).text)
-
-            lastid = response.get('lastId', '')
-
+            last_id = response.get('lastId', '')
             tasks = tasks + response['tasks']
-
             i += 1
-        elif lastid == "":
+        elif last_id == "":
             i = 0
 
     # p.pprint(tasks)
     return tasks
 
 
-def delete_tasks(api_key, taskid=None):
+def delete_tasks(api_key, task_id=None):
 
-    if taskid:
-        url = f"https://onfleet.com/api/v2/tasks/{taskid}"
-
+    if task_id:
+        url = f"https://onfleet.com/api/v2/tasks/{task_id}"
         payload = {}
         headers = {
-            'Authorization': 'Basic ' + u.encode_b64(api_key)
+            'Authorization': 'Basic ' + encode_b64(api_key)
         }
+        requests.request("DELETE", url, headers=headers, data=payload)
 
-        response = requests.request("DELETE", url, headers=headers, data=payload)
-
-        print("Task " + taskid + " deleted.")
+        print("Task " + task_id + " deleted.")
 
     else:
         confirm = input("Delete all tasks? y or n. ")
 
         if confirm == "y":
             tasks = list_tasks(api_key)
-
             for t in tasks:
                 try:
-                    taskid = t['id']
-
-                    url = f"https://onfleet.com/api/v2/tasks/{taskid}"
-
+                    task_id = t['id']
+                    url = f"https://onfleet.com/api/v2/tasks/{task_id}"
                     payload = {}
                     headers = {
-                        'Authorization': 'Basic ' + u.encode_b64(api_key)
+                        'Authorization': 'Basic ' + encode_b64(api_key)
                     }
-
                     requests.request("DELETE", url, headers=headers, data=payload)
 
-                    print("Task " + taskid + " deleted.")
-
+                    print("Task " + task_id + " deleted.")
                 except Exception as e:
                     print(e)
                     break
@@ -143,4 +157,3 @@ def delete_tasks(api_key, taskid=None):
         print("Task deletion complete.")
 
     return
-

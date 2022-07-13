@@ -1,16 +1,16 @@
 import tasks
 import workers
 
-api_key = "b4523670d4ba81be1c6a2084776093eb"
+API_KEY = "24bb3ed7b12129427d449c91e948a7bb"
 
-tasks_filepath = "/Users/sethlipman/Desktop/tasks.json"
-workers_filepath = "/Users/sethlipman/Desktop/workers.json"
+TASKS_FILEPATH = "/Users/sethlipman/Desktop/tasks.json"
+WORKERS_FILEPATH = "/Users/sethlipman/Desktop/workers.json"
 
 # Clear Out Environment
-# None = delete all
-# tasks.delete_tasks(api_key=api_key, taskid=None)
-# workers.delete_workers(api_key=api_key, workerid=None)
+# Provide taskId or workerID to delete single task/worker, provide None to delete ALL tasks/workers
+# tasks.delete_tasks(api_key=API_KEY, task_id=None)
+# workers.delete_workers(api_key=API_KEY, worker_id=None)
 
 # Setup Environment
-tasks.create_tasks_batch(api_key=api_key, file=tasks_filepath, batchsize=100)
-# workers.create_workers(api_key=api_key, file=workers_filepath)
+# tasks.create_tasks_batch(api_key=API_KEY, file=TASKS_FILEPATH, batch_size=100)
+# workers.create_workers(api_key=API_KEY, file=WORKERS_FILEPATH)
