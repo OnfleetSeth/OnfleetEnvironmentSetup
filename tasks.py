@@ -34,7 +34,7 @@ def create_single_task_async(api_key, file):
         start = datetime.datetime.now()
 
         for task in tasks:
-            futures.append(executor.submit(create_single_task, api_key, task=task))
+            futures.append(executor.submit(create_single_task, api_key=api_key, task=task))
         for future in concurrent.futures.as_completed(futures):
             print(count, future.result())
 
