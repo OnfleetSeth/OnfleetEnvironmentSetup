@@ -116,7 +116,7 @@ def list_tasks(api_key):
             i += 1
         elif last_id == "":
             i = 0
-
+    print(len(tasks))
     return tasks
 
 

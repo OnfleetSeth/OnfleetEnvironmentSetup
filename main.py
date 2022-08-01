@@ -14,7 +14,7 @@ WORKERS_FILEPATH = "/Users/sethlipman/Desktop/workers.json"
 # workers.delete_workers(api_key=API_KEY, worker_id=None)
 
 # Setup Environment
-# tasks.create_single_task_async(api_key=API_KEY, file=TASKS_FILEPATH)
+tasks.create_single_task_async(api_key=API_KEY, file=TASKS_FILEPATH)
 # tasks.create_tasks_batch(api_key=API_KEY, file=TASKS_FILEPATH, batch_size=100)
 # workers.create_workers(api_key=API_KEY, file=WORKERS_FILEPATH)
 

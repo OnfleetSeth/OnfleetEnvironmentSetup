@@ -35,7 +35,7 @@ def rate_limited(max_per_second):
             if left_to_wait > 0:
                 time.sleep(left_to_wait)
             ret = func(*args, **kwargs)
-            last_time_called[0] = time.clock()
+            last_time_called[0] = time.time()
             return ret
         return rate_limited_function
 
