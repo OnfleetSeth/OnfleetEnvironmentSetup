@@ -6,7 +6,7 @@ import concurrent.futures
 from utilities import rate_limited, read_file, encode_b64
 
 
-@rate_limited(5)
+@rate_limited(20)
 def create_single_task(task, api_key):
     url = "https://onfleet.com/api/v2/tasks"
     payload = json.dumps(
@@ -18,10 +18,10 @@ def create_single_task(task, api_key):
     }
     response = requests.request("POST", url, headers=headers, data=payload)
 
-    if response == 200:
+    if response.status_code == 200:
         pass
     else:
-        print(datetime.datetime.now(), response.text)
+        print(datetime.datetime.now(), response)
 
 
 def create_single_task_async(api_key, file):
@@ -29,14 +29,11 @@ def create_single_task_async(api_key, file):
     tasks = data_tuple[1]
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        count = 0
         futures = []
         start = datetime.datetime.now()
 
         for task in tasks:
             futures.append(executor.submit(create_single_task, api_key=api_key, task=task))
-        for future in concurrent.futures.as_completed(futures):
-            print(count, future.result())
 
     end = datetime.datetime.now()
     print("start: " + str(start), "end: " + str(end), "duration: " + str(end-start))
@@ -52,20 +49,24 @@ def create_tasks_batch(api_key, file, batch_size=100):
     print("Number of batches: " + str(number_of_batches))
 
     batch_counter = 0
-    if batch_counter < number_of_batches:
+    while batch_counter < number_of_batches:
         print(datetime.datetime.now(), "Trying: Create Batch " + str(batch_counter + 1) + ".")
         start = (batch_counter * batch_size)
-        end = (start + batch_size) - 1
+
+        if ((start + batch_size) - 1) < task_count:
+            end = (start + batch_size)
+        else:
+            end = task_count
 
         task_batch = []
         i = start
-        while i <= end:
+        while i < end:
             try:
                 task_batch.append(data[i])
+                i += 1
             except IndexError as e:
                 print(e)
                 break
-            i += 1
 
         url = "https://onfleet.com/api/v2/tasks/batch"
         payload = json.dumps({"tasks": task_batch})
